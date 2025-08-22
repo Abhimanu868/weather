@@ -36,7 +36,6 @@
 
   <!-- Text Right -->
   <div id="weatherapp" style="font-size: 3rem; font-weight: bold; text-align: right; line-height: 1.3;">
-    Welcome to <br>
     <span id="animate" class="purple"></span>
   </div>
 </div>
@@ -122,35 +121,13 @@
   timeline
     .add({ targets:'#weatherIcon', translateX: [0, -100] })
     .add({ targets:'#weatherapp', translateX:[0, 100] }); 
-
   // Typed.js - Initialize after animations complete with error handling
-  try {
     var typed = new Typed('#animate', {
-      strings: ['Weather'],
+      strings: ['Welcome to <br> Weather'],
       typeSpeed: 70,
       backSpeed: 50,
       loop: true
     });
-    console.log('Typed.js initialized successfully');
-  } catch (error) {
-    console.error('Typed.js error:', error);
-    // Fallback: manually set the text if Typed.js fails
-    document.getElementById('animate').textContent = 'Weather';
-  }
-  // Typed.js - Initialize after animations complete with error handling
-  try {
-    var typed = new Typed('#animate', {
-      strings: ['Weather'],
-      typeSpeed: 70,
-      backSpeed: 50,
-      loop: true
-    });
-    console.log('Typed.js initialized successfully');
-  } catch (error) {
-    console.error('Typed.js error:', error);
-    // Fallback: manually set the text if Typed.js fails
-    document.getElementById('animate').textContent = 'Weather';
-  }
 </script>
 
 <style>
