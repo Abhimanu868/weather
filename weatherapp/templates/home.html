@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Home | WeatherApp{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="height:75vh; gap: 80px;">
+  
+  <!-- SVG Left -->
+  <svg id="weatherIcon" xmlns="http://www.w3.org/2000/svg" 
+       viewBox="0 0 64 64" 
+       width="220" height="220"
+       role="img" aria-labelledby="title desc">
+    <circle cx="20" cy="20" r="10" fill="#FFD93B"/>
+    <path class='cloud' d="M46 28a12 12 0 0 0-23-3.5A10 10 0 1 0 22 48h24a10 10 0 0 0 0-20z" 
+          fill="white" stroke="#94A3B8" stroke-width="2" stroke-linejoin="round"/>
+    <ellipse class="raindrop" cx="28" cy="56" rx="3" ry="5" fill="#3B82F6"/>
+    <ellipse class="raindrop" cx="38" cy="56" rx="3" ry="5" fill="#3B82F6"/>
+    <ellipse class="raindrop" cx="48" cy="56" rx="3" ry="5" fill="#3B82F6"/>
+  </svg>
+
+  <!-- Form (hidden initially) -->
+  <div id="cityForm" style="display:none; flex: 1; max-width: 400px;">
+    <form method="get" class="p-4 rounded shadow-lg bg-white">
+      {% csrf_token %}
+      <h2 class="text-center mb-4" style="color: purple; font-weight: bold;">Weather Search</h2>
+      <div class="mb-3">
+        <input type="text" name="city" class="form-control form-control-lg" placeholder="Enter city name" required>
+      </div>
+      <div class="d-grid">
+        <button type="submit" class="btn btn-lg btn-primary" style="background: purple; border: none;">
+          Search Weather
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Text Right -->
+  <div id="weatherapp" style="font-size: 3rem; font-weight: bold; text-align: right; line-height: 1.3;">
+    Welcome to <br>
+    <span id="animate" class="purple"></span>
+  </div>
+</div>
+
+<!-- Weather card BELOW the form -->
+{% if weather.city %}
+<div class="d-flex justify-content-center mt-4">
+  <div class="weather-card p-4 shadow-lg rounded bg-white text-center" style="max-width:400px; width:100%;">
+    <h2 style="color: purple;">{{ weather.city }}</h2>
+    <img src="http://openweathermap.org/img/wn/{{ weather.icon }}@2x.png" alt="icon">
+    <p>🌡 Temperature: {{ weather.temperature }}°C</p>
+    <p>☁ Condition: {{ weather.description }}</p>
+    <p>💧 Humidity: {{ weather.humidity }}%</p>
+    <p>🌬 Wind: {{ weather.wind }} m/s</p>
+  </div>
+</div>
+{% elif weather.error %}
+<div class="d-flex justify-content-center mt-4">
+  <p class="error text-danger">{{ weather.error }}</p>
+</div>
+{% endif %}
+{% if forecast %}
+<h2>5-Day Forecast for {{ weather.city }}</h2>
+  <div class="forecast-container">
+    {% for day in forecast %}
+    <div class="forecast-card">
+        <p><strong>{{ day.date|slice:":10" }}</strong></p>
+        <p><strong>{{ day.day|slice:":10" }}</strong></p>
+        <img src="http://openweathermap.org/img/wn/{{ day.icon }}@2x.png" alt="icon">
+        <p>🌡 {{ day.temperature }}°C</p>
+        <p>{{ day.description }}</p>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+
+<script>
+  // Raindrop animation
+  gsap.utils.toArray('.raindrop').forEach((drop, i) => {
+    gsap.fromTo(drop, { y: 0, opacity: 1 }, 
+                      { y: 30, opacity: 0, repeat: -1, duration: 0.8, ease: 'power1.in', delay: i * 0.2 });
+  });
+
+  // Enhanced cloud animation with better black/white contrast
+  gsap.fromTo('.cloud', 
+    { fill: '#ffffff', stroke: '#94A3B8' }, 
+    { 
+      fill: '#000000', 
+      stroke: '#666666',
+      repeat: -1, 
+      yoyo: true, 
+      duration: 2, 
+      ease: 'power2.inOut',
+      onRepeat: function() {
+        // Add subtle scale effect for more dynamic animation
+        gsap.to('.cloud', {
+          scale: 1.05,
+          duration: 0.3,
+          yoyo: true,
+          repeat: 1
+        });
+      }
+    });
+
+  // Anime.js timeline
+  const timeline = anime.timeline({
+    duration: 1000,
+    easing: 'easeOutExpo',
+    complete: function() {
+  // After SVG + text finish moving, show form
+  let form = document.querySelector('#cityForm');
+  form.style.display = "block";
+  
+  gsap.fromTo(form, { opacity: 0, scale: 0.8 }, 
+                        { opacity: 1, scale: 1, duration: 1, ease: "back.out(1.7)" });
+    }
+  });
+
+  timeline
+    .add({ targets:'#weatherIcon', translateX: [0, -100] })
+    .add({ targets:'#weatherapp', translateX:[0, 100] }); 
+
+  // Typed.js - Initialize after animations complete with error handling
+  try {
+    var typed = new Typed('#animate', {
+      strings: ['Weather'],
+      typeSpeed: 70,
+      backSpeed: 50,
+      loop: true
+    });
+    console.log('Typed.js initialized successfully');
+  } catch (error) {
+    console.error('Typed.js error:', error);
+    // Fallback: manually set the text if Typed.js fails
+    document.getElementById('animate').textContent = 'Weather';
+  }
+  // Typed.js - Initialize after animations complete with error handling
+  try {
+    var typed = new Typed('#animate', {
+      strings: ['Weather'],
+      typeSpeed: 70,
+      backSpeed: 50,
+      loop: true
+    });
+    console.log('Typed.js initialized successfully');
+  } catch (error) {
+    console.error('Typed.js error:', error);
+    // Fallback: manually set the text if Typed.js fails
+    document.getElementById('animate').textContent = 'Weather';
+  }
+</script>
+
+<style>
+  .purple { color: purple; }
+  form input:focus {
+    border-color: purple !important;
+    box-shadow: 0 0 5px rgba(128,0,128,0.5) !important;
+  }
+  
+  /* Enhanced dark mode support */
+  .dark-mode .weather-card {
+    background: #2d3748 !important;
+    color: #ffffff !important;
+  }
+  
+  .dark-mode form {
+    background: #2d3748 !important;
+    color: #ffffff !important;
+  }
+  
+  .dark-mode form input {
+    background: #4a5568 !important;
+    color: #ffffff !important;
+    border-color: #718096 !important;
+  }
+  
+  .dark-mode form input::placeholder {
+    color: #a0aec0 !important;
+  }
+  
+  .dark-mode form input:focus {
+    border-color: #9f7aea !important;
+    box-shadow: 0 0 5px rgba(159, 122, 234, 0.5) !important;
+  }
+  
+  /* Ensure welcome text is always visible */
+  #weatherapp {
+    color: #000000 !important;
+  }
+  
+  .dark-mode #weatherapp {
+    color: #ffffff !important;
+  }
+  .forecast-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  gap: 15px;
+}
+
+  .forecast-card {
+    background: #ffffffa8;
+    border-radius: 12px;
+    padding: 10px;
+    width: 120px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+  }
+  
+  /* Dark mode styles */
+  .dark-mode .forecast-card {
+    background: #2d3748a8;
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(255,255,255,0.1);
+  }
+</style>
+
+{% endblock %}
